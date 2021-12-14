@@ -1,62 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Oct  2 19:06:31 2021
-
-@author: chait
-"""
-import gym
-from gym import Env
-from gym.spaces import Discrete,Box,Dict,Tuple,MultiBinary,MultiDiscrete
-
-import numpy as np
-import os
-import random
+import gym 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.evaluation import evaluate_policy
+import os
 
-class ShowerEnv(Env):
-    def __init__(self):
-       
-        self.action_space = Discrete(3)
-        self.observation_space = Box(low=np.array([0]), high=np.array([100]))
-        self.state = 38 + random.randint(-3,3)
-        self.shower_length = 60
-        
-    def step(self, action):
-        self.state += action -1 
-        self.shower_length -= 1 
-        
-        if self.state >=37 and self.state <=39: 
-            reward =1 
-        else: 
-            reward = -1 
-        
-        if self.shower_length <= 0: 
-            done = True
-        else:
-            done = False
-    
-        info = {}
-
-        return self.state, reward, done, info
-
-    def render(self):
-        pass
-    
-    def reset(self):
-        self.state = np.array([38 + random.randint(-3,3)]).astype(float)
-        self.shower_length = 60 
-        return self.state
-
-
-env=ShowerEnv()
-env.observation_space.sample()
-env.reset()
-from stable_baselines3.common.env_checker import check_env
-check_env(env, warn=True)
-
-episodes = 5
+environment_name = "CarRacing-v0"
+env = gym.make(environment_name)
+episodes = 10
 for episode in range(1, episodes+1):
     state = env.reset()
     done = False
@@ -69,8 +19,28 @@ for episode in range(1, episodes+1):
         score+=reward
     print('Episode:{} Score:{}'.format(episode, score))
 env.close()
+env.close()
+env.action_space.sample()
+env.observation_space.sample()
 
-log_path = os.path.join('D:\Training', 'Logs')
+#training the model
+log_path = os.path.join('Training', 'Logs')
+model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=log_path)
+model.learn(total_timesteps=60000)
+
+
+ppo_path = os.path.join('Training', 'Saved Models', 'PPO_Driving_model')
+model.save(ppo_path)
+
+
+evaluate_policy(model, env, n_eval_episodes=8, render=True)
+env.close()
+obs = env.reset()
+while True:
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info = env.step(action)
+    env.render()
+env.close()
 
 
 
