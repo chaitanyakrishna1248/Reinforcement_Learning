@@ -24,12 +24,12 @@ env.action_space.sample()
 env.observation_space.sample()
 
 #training the model
-log_path = os.path.join('Training', 'Logs')
+log_path = os.path.join('D:\Training', 'Logs')
 model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=log_path)
 model.learn(total_timesteps=60000)
 
 
-ppo_path = os.path.join('Training', 'Saved Models', 'PPO_Driving_model')
+ppo_path = os.path.join('D:\Training', 'Saved Models', 'PPO_Driving_model')
 model.save(ppo_path)
 
 
